@@ -2,11 +2,15 @@ package br.com.alura.screenmatch;
 
 import br.com.alura.screenmatch.model.DadosEpisodio;
 import br.com.alura.screenmatch.model.DadosSerie;
+import br.com.alura.screenmatch.model.DadosTemporada;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /*
 * A interface vai permitir que eu crie, dentro do meu método principal, algumas chamadas.
@@ -45,5 +49,19 @@ public class ScreenmatchApplication implements CommandLineRunner {
 		* */
 		DadosEpisodio dadosEpisodio = conversor.obterDados(json, DadosEpisodio.class);
 		System.out.println(dadosEpisodio);
+
+		/*
+		* Convertendo os dados da temporada para classe.
+		* Quero buscar os dados de todas as temporadas. Então meu for irá percorrer o número de temporadas que a série tem.
+		* */
+
+		List<DadosTemporada> temporadas = new ArrayList<>();
+		for (int i = 1; i<= dados.totalTemporadas(); i++) {
+			json = consumoApi.obterDados("https://www.omdbapi.com/?t=gilmore+girls&season=" + i + "&apikey=f7de918f");
+			DadosTemporada dadosTemporada = conversor.obterDados(json, DadosTemporada.class);
+			temporadas.add(dadosTemporada);
+		}
+
+		temporadas.forEach(System.out::println);
 	}
 }
