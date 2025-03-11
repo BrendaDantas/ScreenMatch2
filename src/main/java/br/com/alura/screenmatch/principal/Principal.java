@@ -6,10 +6,8 @@ import br.com.alura.screenmatch.model.DadosTemporada;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Principal {
 
@@ -26,28 +24,28 @@ public class Principal {
     private final String API_KEY = "&apikey=f7de918f";
 
     public void exibeMenu() {
-    //    System.out.print("Digite o nome da série que deseja buscar: ");
-    //    var nomeDaSerie = resposta.nextLine();
+        System.out.print("Digite o nome da série que deseja buscar: ");
+        var nomeDaSerie = resposta.nextLine();
         /*
         * Sempre que tivermos um espaço, trocaremos por um (+)
         *
         * Estamos instanciando um ConsumoApi dentro do método. Como esse consumoapi será usado em outras vezes
         * que estivermos trocando o endereço, deixaremos essa classe como atributo da principal.
         * */
-    //    var json = consumoApi.obterDados(        ENDERECO + nomeDaSerie.replace(" ", "+") + API_KEY);
+        var json = consumoApi.obterDados(        ENDERECO + nomeDaSerie.replace(" ", "+") + API_KEY);
 
         /*
          * Instancio o conversor e mando ele transformar para dadosSerie e imprimo os dados da série
          * */
-    //    DadosSerie dados = conversor.obterDados(json, DadosSerie.class);
-    //    System.out.println(dados);
+        DadosSerie dados = conversor.obterDados(json, DadosSerie.class);
+        System.out.println(dados);
 
         /*
          * Convertendo os dados da temporada para classe.
          * Quero buscar os dados de todas as temporadas. Então meu for irá percorrer o número de temporadas que a série tem.
          * */
 
-	/*	List<DadosTemporada> temporadas = new ArrayList<>();
+		List<DadosTemporada> temporadas = new ArrayList<>();
 		for (int i = 1; i<= dados.totalTemporadas(); i++) {
 			json = consumoApi.obterDados(ENDERECO + nomeDaSerie.replace(" ", "+")
                     + "&season=" + i + API_KEY);
@@ -55,7 +53,7 @@ public class Principal {
 			temporadas.add(dadosTemporada);
 		}
         temporadas.forEach(System.out::println);
-    */
+
         /*
         * Usando lambdas
         *
@@ -63,7 +61,35 @@ public class Principal {
         * Então para cada temporada (t) eu vou pegar seus episódios, e percorrer a lista de episódios.
         * E, depois, para cada episodio (e) eu vou imprimir o título do episódio.
         * */
-    //    temporadas.forEach(t -> t.episodios().forEach(e -> System.out.println(e.titulo())));
+        temporadas.forEach(t -> t.episodios().forEach(e -> System.out.println(e.titulo())));
+
+        /*
+        * Dentro de cada temporada, pego cada um dos episódios e irei aglutniar.
+        * Para essa aglutinação (usar uma lista dentro de outra lista), usarei o flatmap.
+        * Depois, usando o collect, coleto esses dados para uma nova lista.
+        *
+        * Mudei o collect para um toList porque esse toList me gera uma lista imutável, então caso eu queira adicionar
+        * mais dados nessa lista de episódios, não irei conseguir, vai gerar uma exceção. O que não acontece com o collect.
+        * */
+        List<DadosEpisodio> dadosEpisodios = temporadas.stream()
+                .flatMap(t -> t.episodios().stream())
+                //.collect(Collectors.toList());
+                .toList();
+
+        /*
+        * Pegando os 5 episódos mais bem avaliados
+        * Removendo os episódios que possuem N/A como avaliação, o que pode acontecer visto que a avaliação é uma string
+        * Comparando os episódios pela avaliação.
+        * Colocar em ordem decrescente
+        * */
+        System.out.println("\nTop 5 episódios");
+        dadosEpisodios
+                .stream()
+                .filter(e -> !e.avaliacao().equalsIgnoreCase("N/A"))
+                .sorted(Comparator.comparing(DadosEpisodio::avaliacao).reversed())
+                .limit(5)
+                .forEach(System.out::println);
+
 
         /*
         * Lidando com streams e funções lambdas em conjunto
@@ -75,13 +101,13 @@ public class Principal {
         *   transformo o nome para letra maiúscula
         * 5. Imprimir os dados
         * */
-        List<String> nomes = Arrays.asList("Jacque", "Iasmin", "Paulo", "Rodrigo", "Nico");
+        /*List<String> nomes = Arrays.asList("Jacque", "Iasmin", "Paulo", "Rodrigo", "Nico");
         nomes.stream()
                 .sorted()
                 .limit(3)
                 .filter(n -> n.startsWith("N"))
                 .map(n -> n.toUpperCase())
                 .forEach(System.out::println);
-
+        */
     }
 }
